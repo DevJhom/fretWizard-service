@@ -8,6 +8,28 @@ datasource db {
 }
 
 model User {
-  UserId   String  @id(map: "PK_User") @db.UniqueIdentifier
-  Username String? @db.NChar(100)
+  UserId       String   @id(map: "PK_User") @db.UniqueIdentifier
+  Username     String?  @db.NChar(100)
+  Email        String   @unique @db.NVarChar(255)
+  PasswordHash String   @db.NVarChar(500)
+  FirstName    String?  @db.NVarChar(100)
+  LastName     String?  @db.NVarChar(100)
+  IsActive     Boolean  @default(true)
+  CreatedDate  DateTime @default(now())
+  ModifiedDate DateTime @updatedAt
+  Cards        Card[]
+}
+
+model Card {
+  CardId       String   @id(map: "PK_Card") @db.UniqueIdentifier
+  Title        String   @db.NVarChar(255)
+  Description  String?  @db.NVarChar(1000)
+  Tags         String?  @db.NVarChar(500)
+  IsFavorite   Boolean  @default(false)
+  IsActive     Boolean  @default(true)
+  IsDeleted    Boolean  @default(false)
+  CreatedDate  DateTime @default(now())
+  ModifyDate   DateTime @updatedAt
+  UserId       String   @db.UniqueIdentifier
+  User         User     @relation(fields: [UserId], references: [UserId], map: "FK_Card_User")
 }

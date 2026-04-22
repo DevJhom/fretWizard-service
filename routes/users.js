@@ -1,8 +1,23 @@
 var express = require('express');
 var router = express.Router();
+var bcrypt = require('bcrypt');
 var { PrismaClient } = require('@prisma/client');
 
 var prisma = new PrismaClient();
+
+var SALT_ROUNDS = 10;
+
+// Fields to return in responses (excludes PasswordHash)
+var userSelect = {
+  UserId: true,
+  Username: true,
+  Email: true,
+  FirstName: true,
+  LastName: true,
+  IsActive: true,
+  CreatedDate: true,
+  ModifiedDate: true,
+};
 
 /**
  * @swagger
@@ -17,11 +32,53 @@ var prisma = new PrismaClient();
  *         Username:
  *           type: string
  *           nullable: true
+ *         Email:
+ *           type: string
+ *         FirstName:
+ *           type: string
+ *           nullable: true
+ *         LastName:
+ *           type: string
+ *           nullable: true
+ *         IsActive:
+ *           type: boolean
+ *         CreatedDate:
+ *           type: string
+ *           format: date-time
+ *         ModifiedDate:
+ *           type: string
+ *           format: date-time
  *     UserInput:
+ *       type: object
+ *       required:
+ *         - Email
+ *         - Password
+ *       properties:
+ *         Username:
+ *           type: string
+ *         Email:
+ *           type: string
+ *         Password:
+ *           type: string
+ *         FirstName:
+ *           type: string
+ *         LastName:
+ *           type: string
+ *     UserUpdateInput:
  *       type: object
  *       properties:
  *         Username:
  *           type: string
+ *         Email:
+ *           type: string
+ *         Password:
+ *           type: string
+ *         FirstName:
+ *           type: string
+ *         LastName:
+ *           type: string
+ *         IsActive:
+ *           type: boolean
  */
 
 /**
@@ -42,7 +99,7 @@ var prisma = new PrismaClient();
  */
 router.get('/', async function(req, res, next) {
   try {
-    var users = await prisma.user.findMany();
+    var users = await prisma.user.findMany({ select: userSelect });
     res.json(users);
   } catch (err) {
     next(err);
@@ -75,7 +132,8 @@ router.get('/', async function(req, res, next) {
 router.get('/:id', async function(req, res, next) {
   try {
     var user = await prisma.user.findUnique({
-      where: { UserId: req.params.id }
+      where: { UserId: req.params.id },
+      select: userSelect,
     });
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user);
@@ -106,11 +164,17 @@ router.get('/:id', async function(req, res, next) {
  */
 router.post('/', async function(req, res, next) {
   try {
+    var hashedPassword = await bcrypt.hash(req.body.Password, SALT_ROUNDS);
     var user = await prisma.user.create({
       data: {
         UserId: crypto.randomUUID(),
-        Username: req.body.Username
-      }
+        Username: req.body.Username,
+        Email: req.body.Email,
+        PasswordHash: hashedPassword,
+        FirstName: req.body.FirstName,
+        LastName: req.body.LastName,
+      },
+      select: userSelect,
     });
     res.status(201).json(user);
   } catch (err) {
@@ -136,7 +200,7 @@ router.post('/', async function(req, res, next) {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserInput'
+ *             $ref: '#/components/schemas/UserUpdateInput'
  *     responses:
  *       200:
  *         description: Updated user
@@ -149,9 +213,18 @@ router.post('/', async function(req, res, next) {
  */
 router.put('/:id', async function(req, res, next) {
   try {
+    var data = {};
+    if (req.body.Username !== undefined) data.Username = req.body.Username;
+    if (req.body.Email !== undefined) data.Email = req.body.Email;
+    if (req.body.FirstName !== undefined) data.FirstName = req.body.FirstName;
+    if (req.body.LastName !== undefined) data.LastName = req.body.LastName;
+    if (req.body.IsActive !== undefined) data.IsActive = req.body.IsActive;
+    if (req.body.Password) data.PasswordHash = await bcrypt.hash(req.body.Password, SALT_ROUNDS);
+
     var user = await prisma.user.update({
       where: { UserId: req.params.id },
-      data: { Username: req.body.Username }
+      data: data,
+      select: userSelect,
     });
     res.json(user);
   } catch (err) {
