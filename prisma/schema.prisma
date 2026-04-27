@@ -17,7 +17,8 @@ model User {
   IsActive     Boolean  @default(true)
   CreatedDate  DateTime @default(now())
   ModifiedDate DateTime @updatedAt
-  Cards        Card[]
+  Cards         Card[]
+  RefreshTokens RefreshToken[]
 }
 
 model Card {
@@ -32,4 +33,33 @@ model Card {
   ModifyDate   DateTime @updatedAt
   UserId       String   @db.UniqueIdentifier
   User         User     @relation(fields: [UserId], references: [UserId], map: "FK_Card_User")
+  Fretboards   Fretboard[]
+}
+
+model Fretboard {
+  FretboardId    String   @id(map: "PK_Fretboard") @db.UniqueIdentifier
+  CardId         String   @db.UniqueIdentifier
+  Accidental     String   @db.NVarChar(10)
+  Key            String   @db.NVarChar(5)
+  Pattern        String   @db.NVarChar(100)
+  Setup          String   @db.NVarChar(50)
+  Tonality       String   @db.NVarChar(20)
+  ChordPosition  Int
+  FretAmount     Int
+  HighlightNotes String   @db.NVarChar(500)
+  CAGED          String   @db.NVarChar(500)
+  Strings        String   @db.NVarChar(500)
+  IsActive       Boolean  @default(true)
+  CreatedDate    DateTime @default(now())
+  ModifiedDate   DateTime @updatedAt
+  Card           Card     @relation(fields: [CardId], references: [CardId], map: "FK_Fretboard_Card")
+}
+
+model RefreshToken {
+  TokenId     String   @id(map: "PK_RefreshToken") @db.UniqueIdentifier
+  Token       String   @unique @db.NVarChar(500)
+  UserId      String   @db.UniqueIdentifier
+  ExpiresAt   DateTime
+  CreatedDate DateTime @default(now())
+  User        User     @relation(fields: [UserId], references: [UserId], map: "FK_RefreshToken_User")
 }

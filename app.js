@@ -1,3 +1,4 @@
+require('dotenv').config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -9,6 +10,9 @@ var swaggerUi = require('swagger-ui-express');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var cardsRouter = require('./routes/cards');
+var fretboardsRouter = require('./routes/fretboards');
+var authRouter = require('./routes/auth');
+var authenticateToken = require('./middleware/auth');
 
 var app = express();
 
@@ -19,6 +23,16 @@ var swaggerSpec = swaggerJsdoc({
       title: 'FretWizard API',
       version: '1.0.0',
     },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [{ bearerAuth: [] }],
   },
   apis: ['./routes/*.js'],
 });
@@ -35,8 +49,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/', indexRouter);
+app.use('/auth', authRouter);
 app.use('/users', usersRouter);
-app.use('/cards', cardsRouter);
+app.use('/cards', authenticateToken, cardsRouter);
+app.use('/fretboards', authenticateToken, fretboardsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
