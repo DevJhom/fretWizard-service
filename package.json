@@ -7,7 +7,9 @@
     "dev": "nodemon ./bin/www",
     "db:pull": "prisma db pull",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -23,5 +25,9 @@
     "prisma": "^5.22.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.1"
   }
 }

@@ -212,7 +212,7 @@ router.post('/login', async function (req, res, next) {
     var refreshToken = generateRefreshToken(user);
     await storeRefreshToken(refreshToken, user.UserId);
 
-    var { PasswordHash, ...userWithoutPassword } = user;
+    var { PasswordHash: _PasswordHash, ...userWithoutPassword } = user;
 
     res.json({ accessToken, refreshToken, user: userWithoutPassword });
   } catch (err) {
@@ -267,7 +267,7 @@ router.post('/refresh', async function (req, res, next) {
     var decoded;
     try {
       decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    } catch (err) {
+    } catch (_err) {
       await prisma.refreshToken.delete({ where: { TokenId: storedToken.TokenId } });
       return res.status(403).json({ message: 'Invalid or expired refresh token' });
     }
