@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var crypto = require('crypto');
 var { PrismaClient } = require('@prisma/client');
 
 var prisma = new PrismaClient();

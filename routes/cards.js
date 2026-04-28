@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var crypto = require('crypto');
 var { PrismaClient } = require('@prisma/client');
 
 var prisma = new PrismaClient();
@@ -269,7 +270,7 @@ router.put('/:id', async function(req, res, next) {
  */
 router.delete('/:id', async function(req, res, next) {
   try {
-    var card = await prisma.card.update({
+    await prisma.card.update({
       where: { CardId: req.params.id },
       data: { IsDeleted: true },
     });

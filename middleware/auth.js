@@ -12,7 +12,7 @@ var authenticateToken = function (req, res, next) {
     var decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
-  } catch (err) {
+  } catch (_err) {
     return res.status(403).json({ message: 'Invalid or expired token' });
   }
 };
