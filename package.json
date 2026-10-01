@@ -8,26 +8,28 @@
     "db:pull": "prisma db pull",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "test": "npm run test:unit",
+    "test:unit": "node --test \"test/unit/**/*.test.js\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "bcrypt": "^6.0.0",
-    "cookie-parser": "~1.4.4",
+    "cors": "^2.8.6",
     "debug": "~2.6.9",
     "dotenv": "^17.4.2",
-    "express": "~4.16.1",
-    "http-errors": "~1.6.3",
-    "jade": "~1.11.0",
+    "express": "^4.22.3",
     "jsonwebtoken": "^9.0.3",
     "morgan": "~1.9.1",
     "prisma": "^5.22.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.2.1"
+    "eslint": "^10.2.1",
+    "supertest": "^7.3.0"
   }
 }
