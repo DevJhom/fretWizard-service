@@ -12,6 +12,7 @@ var createAuthRouter = require('./routes/auth');
 var createMeRouter = require('./routes/me');
 var createLibraryCardsRouter = require('./routes/libraryCards');
 var createWorkspacesRouter = require('./routes/workspaces');
+var createChordProgressionRouter = require('./routes/chordProgression');
 
 function createApp(deps) {
   var config = deps.config;
@@ -29,6 +30,7 @@ function createApp(deps) {
   app.use('/me', requireAuth, createMeRouter(deps));
   app.use('/library-cards', requireAuth, createLibraryCardsRouter(deps));
   app.use('/workspaces', requireAuth, createWorkspacesRouter(deps));
+  app.use('/chord-progression', requireAuth, createChordProgressionRouter(deps));
 
   app.use(function (req, res, next) {
     next(notFound());
