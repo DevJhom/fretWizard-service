@@ -1,6 +1,8 @@
 var bcrypt = require('bcrypt');
+var tokens = require('./tokens');
 var { conflict, unauthorized } = require('../lib/errors');
 
+var GOOGLE = 'google';
 var DUMMY_PASSWORD = 'fretwizard-dummy-password';
 var dummyHashes = {};
 
@@ -30,6 +32,47 @@ async function verifyPassword(db, config, input) {
   return user;
 }
 
+function googleUsername(name, email) {
+  var fromName = (name || '').trim().slice(0, 100);
+  return fromName || email.split('@')[0].slice(0, 100);
+}
+
+async function signInWithGoogle(prisma, identity) {
+  if (!identity.emailVerified || !identity.email) throw unauthorized('Google sign-in failed');
+  var email = identity.email.trim().toLowerCase();
+
+  var login = await prisma.userLogin.findUnique({
+    where: { Provider_ProviderUserId: { Provider: GOOGLE, ProviderUserId: identity.sub } },
+    include: { User: true },
+  });
+  if (login) {
+    if (!login.User.IsActive) throw unauthorized('Google sign-in failed');
+    return { user: login.User, isNewUser: false };
+  }
+
+  var existing = await prisma.user.findUnique({ where: { Email: email } });
+  if (existing) {
+    if (!existing.IsActive) throw unauthorized('Google sign-in failed');
+    // Google proved who owns this email; the password never was, so it goes,
+    // along with every session that password may have started.
+    var linked = await prisma.$transaction(async function (tx) {
+      await tx.userLogin.create({ data: { UserId: existing.UserId, Provider: GOOGLE, ProviderUserId: identity.sub } });
+      await tokens.revokeAllForUser(tx, existing.UserId);
+      return tx.user.update({ where: { UserId: existing.UserId }, data: { PasswordHash: null } });
+    });
+    return { user: linked, isNewUser: false };
+  }
+
+  var created = await prisma.user.create({
+    data: {
+      Email: email,
+      Username: googleUsername(identity.name, email),
+      Logins: { create: { Provider: GOOGLE, ProviderUserId: identity.sub } },
+    },
+  });
+  return { user: created, isNewUser: true };
+}
+
 function findById(db, userId) {
   return db.user.findUnique({ where: { UserId: userId } });
 }
@@ -38,4 +81,4 @@ function updateUsername(db, userId, username) {
   return db.user.update({ where: { UserId: userId }, data: { Username: username } });
 }
 
-module.exports = { toUserResponse, createWithPassword, verifyPassword, findById, updateUsername };
+module.exports = { toUserResponse, createWithPassword, verifyPassword, signInWithGoogle, findById, updateUsername };

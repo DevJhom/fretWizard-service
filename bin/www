@@ -6,10 +6,11 @@ var http = require('http');
 var debug = require('debug')('fretwizard-service:server');
 var { loadConfig } = require('../lib/config');
 var prisma = require('../lib/prisma');
+var { createGoogleVerifier } = require('../services/google');
 var { createApp } = require('../app');
 
 var config = loadConfig();
-var app = createApp({ prisma: prisma, config: config, googleVerifier: null });
+var app = createApp({ prisma: prisma, config: config, googleVerifier: createGoogleVerifier(config.googleClientId) });
 
 var port = normalizePort(config.port);
 app.set('port', port);

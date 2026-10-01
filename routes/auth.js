@@ -4,7 +4,8 @@ var validate = require('../middleware/validate');
 var createRateLimit = require('../middleware/rateLimits');
 var users = require('../services/users');
 var tokens = require('../services/tokens');
-var { signupSchema, loginSchema, refreshSchema } = require('../validation/auth');
+var { unauthorized } = require('../lib/errors');
+var { signupSchema, loginSchema, googleSchema, refreshSchema } = require('../validation/auth');
 
 /**
  * @swagger
@@ -97,6 +98,38 @@ function createAuthRouter(deps) {
     var user = await users.verifyPassword(prisma, config, req.body);
     var issued = await tokens.issueTokens(prisma, config, user.UserId);
     res.json(authResponse(issued, user));
+  }));
+
+  /**
+   * @swagger
+   * /auth/google:
+   *   post:
+   *     summary: Sign up or log in with a Google ID token
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [idToken]
+   *             properties:
+   *               idToken: { type: string, description: Credential from Google Identity Services }
+   *     responses:
+   *       200: { description: Signed in; isNewUser tells whether the account was just created, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
+   *       401: { description: Google sign-in failed }
+   *       429: { description: Rate limited }
+   */
+  router.post('/google', createRateLimit(config.rateLimits.auth), validate({ body: googleSchema }), asyncHandler(async function (req, res) {
+    var identity;
+    try {
+      identity = await deps.googleVerifier.verify(req.body.idToken);
+    } catch (_err) {
+      throw unauthorized('Google sign-in failed');
+    }
+    var result = await users.signInWithGoogle(prisma, identity);
+    var issued = await tokens.issueTokens(prisma, config, result.user.UserId);
+    res.json(authResponse(issued, result.user, { isNewUser: result.isNewUser }));
   }));
 
   /**
