@@ -1,162 +1,93 @@
 # FretWizard Service - Project Structure
 
-A beginner-friendly guide to this Express.js + Prisma project.
+A beginner-friendly guide to how this Express.js + Prisma API is put together.
 
-## What is Express.js?
+## What it does
 
-Express is a minimal web framework for Node.js. It handles HTTP requests (GET, POST, PUT, DELETE) and sends responses. Think of it as the "web server" layer — it receives requests from clients (browsers, mobile apps, Postman) and routes them to the right handler function.
+The backend for the FretWizard frontend:
 
-## What is Prisma?
+- **Accounts** — sign up and log in with email + password, or with Google.
+- **Library** — named, saved stacks of fretboards (`/library-cards`).
+- **Workspaces** — the current stack on the Scale and Chord pages (`/workspaces/scale`, `/workspaces/chord`).
+- **Chord Progression** — the saved progression (`/chord-progression`).
+- **Import** — copies a guest's browser data into their account on first login (`/me/import`).
 
-Prisma is an ORM (Object-Relational Mapper) for Node.js. Instead of writing raw SQL queries, you call JavaScript methods like `prisma.user.findMany()` and Prisma translates them into SQL for you. It connects to your database (SQL Server in this project) and provides type-safe access to your tables.
+Run the server and open `http://localhost:3000/api-docs` to try every endpoint.
 
----
-
-## Folder Structure
+## Folder structure
 
 ```
 fretWizard-service/
-├── bin/
-│   └── www                  # Server entry point
-├── generated/
-│   └── prisma/              # Auto-generated Prisma client (do not edit)
-├── node_modules/            # Installed npm packages (do not edit)
+├── bin/www                 # Starts the HTTP server (loads .env, builds dependencies)
+├── app.js                  # createApp(): middleware, routers, 404, error handler
+├── lib/                    # Small shared helpers
+│   ├── config.js           # Reads and checks environment variables
+│   ├── errors.js           # AppError and helpers such as notFound()
+│   ├── limits.js           # 200 cards, 50 fretboards per stack, 100 chords
+│   ├── asyncHandler.js     # Sends errors from async routes to the error handler
+│   ├── prisma.js           # The one PrismaClient
+│   └── swagger.js          # Builds /api-docs from the comments above each route
+├── middleware/
+│   ├── requireAuth.js      # Checks the Bearer access token and sets req.userId
+│   ├── validate.js         # Checks req.body against a zod schema
+│   ├── rateLimits.js       # Per-IP limits on the auth endpoints
+│   └── errorHandler.js     # Turns every error into JSON
+├── validation/             # zod schemas: what a valid request body looks like
+├── mappers/fretboard.js    # FretboardData (JSON) <-> fretboard table row
+├── services/               # Database work, one file per area
+├── routes/                 # HTTP endpoints, one file per area
 ├── prisma/
-│   └── schema.prisma        # Database schema definition
-├── public/
-│   └── stylesheets/
-│       └── style.css        # Static CSS file
-├── routes/
-│   ├── index.js             # Home page route (GET /)
-│   └── users.js             # User CRUD API routes (GET/POST/PUT/DELETE /users)
-├── views/
-│   ├── layout.jade          # Base HTML template
-│   ├── index.jade           # Home page template
-│   └── error.jade           # Error page template
-├── .env                     # Environment variables (database connection string)
-├── app.js                   # Express app configuration (the core of the app)
-├── package.json             # Project metadata, dependencies, and scripts
-└── package-lock.json        # Locked dependency versions
+│   ├── schema.prisma       # The tables
+│   └── migrations/         # The SQL that creates them
+└── test/
+    ├── unit/               # Tests that need no database
+    ├── integration/        # Tests against the Fretwizard_Test database
+    └── support/            # Test helpers
 ```
 
----
-
-## Key Files Explained
-
-### `bin/www` — The Server Starter
-
-This is the file that actually starts the HTTP server. It:
-1. Imports the Express app from `app.js`
-2. Reads the port number from the `PORT` environment variable (defaults to `3000`)
-3. Creates an HTTP server and starts listening for requests
-
-You don't usually edit this file. It's the reason `npm start` runs `node ./bin/www` instead of `node app.js` — it separates "server setup" from "app configuration."
-
-### `app.js` — The Application Core
-
-This is where the Express app is configured. It sets up:
-
-- **Middleware** — functions that process every request before it reaches a route:
-  - `morgan` — logs HTTP requests to the console (e.g., `GET /users 200 12ms`)
-  - `express.json()` — parses JSON request bodies so `req.body` works
-  - `express.urlencoded()` — parses form submissions
-  - `cookie-parser` — reads cookies from requests
-  - `express.static()` — serves files from the `public/` folder
-- **Swagger** — API documentation UI available at `/api-docs`
-- **Routes** — maps URL paths to route handler files:
-  - `/` maps to `routes/index.js`
-  - `/users` maps to `routes/users.js`
-- **Error handling** — catches 404 errors and server errors
-
-**How middleware works:** When a request comes in, it passes through each `app.use()` in order, top to bottom. Each middleware can modify the request/response or pass it along with `next()`. Eventually the request reaches a matching route handler.
-
-### `routes/users.js` — The User API
-
-This file defines 5 REST API endpoints for managing users:
-
-| Method | URL | What it does |
-|--------|-----|-------------|
-| GET | `/users` | List all users |
-| GET | `/users/:id` | Get a single user by ID |
-| POST | `/users` | Create a new user |
-| PUT | `/users/:id` | Update a user's username |
-| DELETE | `/users/:id` | Delete a user |
-
-Each handler:
-1. Calls Prisma to interact with the database
-2. Returns JSON data to the client
-3. Passes errors to Express's error handler via `next(err)`
-
-The file also contains Swagger/JSDoc comments (`/** @swagger ... */`) that generate the interactive API documentation at `/api-docs`.
-
-### `prisma/schema.prisma` — The Database Schema
-
-This file tells Prisma:
-- **Which database to connect to** — SQL Server, using the connection string from `.env`
-- **What tables exist** — currently just `User` with two columns:
-  - `UserId` (UUID, primary key)
-  - `Username` (optional string, up to 100 characters)
-
-When you modify this file and run `prisma generate`, Prisma regenerates the client code in `node_modules/@prisma/client/` so your JavaScript code stays in sync with the database.
-
-### `.env` — Environment Variables
-
-Stores the database connection string. This file is **not committed to git** (it's in `.gitignore`) because it contains credentials. Each developer sets up their own `.env` with their local database details.
+## How a request flows
 
 ```
-DATABASE_URL="sqlserver://SERVERNAME;database=Fretwizard;integratedSecurity=true;trustServerCertificate=true"
+Client
+  -> bin/www (HTTP server)
+  -> app.js middleware: logger -> CORS -> JSON body parser
+  -> requireAuth (protected routes only)
+  -> validate (zod)
+  -> route handler -> service -> Prisma -> SQL Server
+  -> JSON response
+     (any error -> errorHandler -> { "error": { "code", "message" } })
 ```
 
-### `views/` — Server-Side Templates (Jade/Pug)
+Routes stay thin: check the input, call a service, send the result. Services do the database work. Every service function takes `db` first — usually the shared `prisma`, or `tx` inside a transaction — so the import endpoint can run several services in one transaction.
 
-These templates render HTML pages on the server. This project primarily serves a JSON API, so these are only used for the home page and error pages. `layout.jade` is the base template that others extend.
+## Authentication in one paragraph
 
----
+Logging in returns two tokens. The **access token** (a JWT that lasts 15 minutes) goes in the `Authorization: Bearer ...` header of every protected request. The **refresh token** (random, lasts 7 days) is exchanged at `/auth/refresh` for a new pair, and the old one is revoked. The database only stores a SHA-256 hash of each refresh token. If a revoked refresh token is ever used again, every token from that login is revoked, because it was probably copied.
 
-## NPM Scripts
+## Tables
 
-Run these from the terminal with `npm run <script>`:
+| Table | Holds |
+|---|---|
+| `User` | Email, display name, password hash (empty for Google-only accounts) |
+| `UserLogin` | Google (later other providers) identities linked to a user |
+| `RefreshToken` | Hashed refresh tokens, grouped by login "family" |
+| `LibraryCard` + `CardFretboard` | A named card and its fretboards, one row per fretboard |
+| `WorkspaceFretboard` | The Scale/Chord page stacks, one row per fretboard |
+| `ChordProgression` + `ProgressionChord` | The progression's key and tonality, and its chords |
 
-| Script | Command | What it does |
-|--------|---------|-------------|
-| `start` | `node ./bin/www` | Start the server (production) |
-| `dev` | `nodemon ./bin/www` | Start with auto-reload on file changes (development) |
-| `db:pull` | `prisma db pull` | Pull the current database schema into `schema.prisma` |
-| `db:generate` | `prisma generate` | Regenerate the Prisma client after schema changes |
-| `db:migrate` | `prisma migrate dev` | Create and apply a database migration |
+Deleting a user deletes everything they own (`ON DELETE CASCADE`).
 
----
+## Environment
 
-## How a Request Flows Through the App
+Copy `.env.example` to `.env` and fill it in. For tests, copy `.env.test.example` to `.env.test`; it must point at a database whose name contains "test", because the integration tests empty it.
 
-```
-Client (browser/Postman)
-  │
-  ▼
-bin/www (HTTP server, port 3000)
-  │
-  ▼
-app.js (middleware chain: logger → JSON parser → cookie parser → static files)
-  │
-  ▼
-Route matching (/users → routes/users.js)
-  │
-  ▼
-Route handler (e.g., GET /users → prisma.user.findMany())
-  │
-  ▼
-Prisma ORM → SQL Server database
-  │
-  ▼
-JSON response back to client
-```
+## NPM scripts
 
----
-
-## Getting Started
-
-1. `npm install` — install all dependencies
-2. Copy `.env.example` to `.env` and set your database connection string
-3. `npm run db:generate` — generate the Prisma client
-4. `npm run dev` — start the dev server at `http://localhost:3000`
-5. Visit `http://localhost:3000/api-docs` for interactive API documentation
+| Script | What it does |
+|---|---|
+| `npm start` / `npm run dev` | Start the server (`dev` restarts on changes) |
+| `npm test` | Unit tests, then reset the test database and run the integration tests |
+| `npm run test:unit` | Only the tests that need no database |
+| `npm run lint` | ESLint |
+| `npm run db:generate` | Regenerate the Prisma client after editing the schema |
+| `npm run db:migrate` | Create and apply a migration |
