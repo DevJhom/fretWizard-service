@@ -8,8 +8,9 @@
     "db:pull": "prisma db pull",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "test": "npm run test:unit",
+    "test": "npm run test:unit && npm run test:integration",
     "test:unit": "node --test \"test/unit/**/*.test.js\"",
+    "test:integration": "node test/setupDatabase.js && node --test --test-concurrency=1 \"test/integration/**/*.test.js\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
