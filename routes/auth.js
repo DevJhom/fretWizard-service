@@ -4,7 +4,7 @@ var validate = require('../middleware/validate');
 var createRateLimit = require('../middleware/rateLimits');
 var users = require('../services/users');
 var tokens = require('../services/tokens');
-var { signupSchema, loginSchema } = require('../validation/auth');
+var { signupSchema, loginSchema, refreshSchema } = require('../validation/auth');
 
 /**
  * @swagger
@@ -97,6 +97,54 @@ function createAuthRouter(deps) {
     var user = await users.verifyPassword(prisma, config, req.body);
     var issued = await tokens.issueTokens(prisma, config, user.UserId);
     res.json(authResponse(issued, user));
+  }));
+
+  /**
+   * @swagger
+   * /auth/refresh:
+   *   post:
+   *     summary: Exchange a refresh token for a new token pair
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [refreshToken]
+   *             properties:
+   *               refreshToken: { type: string }
+   *     responses:
+   *       200: { description: New token pair, content: { application/json: { schema: { $ref: '#/components/schemas/TokenPair' } } } }
+   *       401: { description: Unknown or reused or expired token or disabled account }
+   *       429: { description: Rate limited }
+   */
+  router.post('/refresh', createRateLimit(config.rateLimits.refresh), validate({ body: refreshSchema }), asyncHandler(async function (req, res) {
+    res.json(await tokens.rotateRefreshToken(prisma, config, req.body.refreshToken));
+  }));
+
+  /**
+   * @swagger
+   * /auth/logout:
+   *   post:
+   *     summary: Revoke the refresh token's whole family
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [refreshToken]
+   *             properties:
+   *               refreshToken: { type: string }
+   *     responses:
+   *       204: { description: Logged out (also for unknown tokens) }
+   *       400: { description: refreshToken missing }
+   */
+  router.post('/logout', validate({ body: refreshSchema }), asyncHandler(async function (req, res) {
+    await tokens.revokeByToken(prisma, req.body.refreshToken);
+    res.status(204).end();
   }));
 
   return router;
