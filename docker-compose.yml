@@ -1,25 +1,27 @@
-# Local SQL Server for development and tests (Prisma needs TCP; LocalDB won't do).
-# Set MSSQL_SA_PASSWORD in .env, then: docker compose up -d
+# Local PostgreSQL for development and tests.
+# Set POSTGRES_PASSWORD in .env, then: docker compose up -d
 services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: fretwizard-sql
+  postgres:
+    image: postgres:16-alpine
+    container_name: fretwizard-pg
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env}
+      POSTGRES_USER: fretwizard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: fretwizard
     ports:
-      - "1433:1433"
+      - "5432:5432"
     volumes:
-      - sqldata:/var/opt/mssql
+      - pgdata:/var/lib/postgresql/data
+      # Runs once, on the first start with an empty volume
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" -b -o /dev/null"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U fretwizard -d fretwizard"]
+      interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 20s
 
 volumes:
-  sqldata:
-    # Fixed name so the data survives `docker compose down` and matches the original `docker run` volume
-    name: fretwizard-sql-data
+  pgdata:
+    # Fixed name so the data survives `docker compose down`
+    name: fretwizard-pg-data
