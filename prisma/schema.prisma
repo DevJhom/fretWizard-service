@@ -3,15 +3,15 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlserver"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  UserId       String   @id(map: "PK_User") @default(uuid()) @db.UniqueIdentifier
-  Email        String   @unique(map: "UQ_User_Email") @db.NVarChar(255)
-  Username     String   @db.NVarChar(100)
-  PasswordHash String?  @db.NVarChar(100)
+  UserId       String   @id(map: "PK_User") @default(uuid()) @db.Uuid
+  Email        String   @unique(map: "UQ_User_Email") @db.VarChar(255)
+  Username     String   @db.VarChar(100)
+  PasswordHash String?  @db.VarChar(100)
   IsActive     Boolean  @default(true)
   CreatedDate  DateTime @default(now())
   ModifiedDate DateTime @updatedAt
@@ -24,10 +24,10 @@ model User {
 }
 
 model UserLogin {
-  UserLoginId    String   @id(map: "PK_UserLogin") @default(uuid()) @db.UniqueIdentifier
-  UserId         String   @db.UniqueIdentifier
-  Provider       String   @db.NVarChar(20)
-  ProviderUserId String   @db.NVarChar(255)
+  UserLoginId    String   @id(map: "PK_UserLogin") @default(uuid()) @db.Uuid
+  UserId         String   @db.Uuid
+  Provider       String   @db.VarChar(20)
+  ProviderUserId String   @db.VarChar(255)
   CreatedDate    DateTime @default(now())
   User           User     @relation(fields: [UserId], references: [UserId], onDelete: Cascade, map: "FK_UserLogin_User")
 
@@ -36,10 +36,10 @@ model UserLogin {
 }
 
 model RefreshToken {
-  TokenId     String    @id(map: "PK_RefreshToken") @default(uuid()) @db.UniqueIdentifier
-  UserId      String    @db.UniqueIdentifier
+  TokenId     String    @id(map: "PK_RefreshToken") @default(uuid()) @db.Uuid
+  UserId      String    @db.Uuid
   TokenHash   String    @unique(map: "UQ_RefreshToken_TokenHash") @db.Char(64)
-  FamilyId    String    @db.UniqueIdentifier
+  FamilyId    String    @db.Uuid
   ExpiresAt   DateTime
   RevokedAt   DateTime?
   CreatedDate DateTime  @default(now())
@@ -50,10 +50,10 @@ model RefreshToken {
 }
 
 model LibraryCard {
-  CardId       String   @id(map: "PK_LibraryCard") @default(uuid()) @db.UniqueIdentifier
-  UserId       String   @db.UniqueIdentifier
-  Name         String   @db.NVarChar(100)
-  Setup        String   @db.NVarChar(10)
+  CardId       String   @id(map: "PK_LibraryCard") @default(uuid()) @db.Uuid
+  UserId       String   @db.Uuid
+  Name         String   @db.VarChar(100)
+  Setup        String   @db.VarChar(10)
   CreatedDate  DateTime @default(now())
   ModifiedDate DateTime @updatedAt
   User         User     @relation(fields: [UserId], references: [UserId], onDelete: Cascade, map: "FK_LibraryCard_User")
@@ -63,16 +63,16 @@ model LibraryCard {
 }
 
 model CardFretboard {
-  CardFretboardId String      @id(map: "PK_CardFretboard") @default(uuid()) @db.UniqueIdentifier
-  CardId          String      @db.UniqueIdentifier
+  CardFretboardId String      @id(map: "PK_CardFretboard") @default(uuid()) @db.Uuid
+  CardId          String      @db.Uuid
   Position        Int
-  KeyName         String      @db.NVarChar(5)
-  Accidental      String      @db.NVarChar(10)
-  Tonality        String      @db.NVarChar(10)
-  Pattern         String      @db.NVarChar(50)
+  KeyName         String      @db.VarChar(5)
+  Accidental      String      @db.VarChar(10)
+  Tonality        String      @db.VarChar(10)
+  Pattern         String      @db.VarChar(50)
   FretAmount      Int
   ChordPosition   Int
-  ChordView       String?     @db.NVarChar(10)
+  ChordView       String?     @db.VarChar(10)
   ShapeC          Boolean
   ShapeA          Boolean
   ShapeG          Boolean
@@ -84,24 +84,24 @@ model CardFretboard {
   StringG         Boolean
   StringB         Boolean
   StringHighE     Boolean
-  HighlightNotes  String      @db.NVarChar(500)
+  HighlightNotes  String      @db.VarChar(500)
   Card            LibraryCard @relation(fields: [CardId], references: [CardId], onDelete: Cascade, map: "FK_CardFretboard_LibraryCard")
 
   @@unique([CardId, Position], map: "UQ_CardFretboard_CardId_Position")
 }
 
 model WorkspaceFretboard {
-  WorkspaceFretboardId String  @id(map: "PK_WorkspaceFretboard") @default(uuid()) @db.UniqueIdentifier
-  UserId               String  @db.UniqueIdentifier
-  Setup                String  @db.NVarChar(10)
+  WorkspaceFretboardId String  @id(map: "PK_WorkspaceFretboard") @default(uuid()) @db.Uuid
+  UserId               String  @db.Uuid
+  Setup                String  @db.VarChar(10)
   Position             Int
-  KeyName              String  @db.NVarChar(5)
-  Accidental           String  @db.NVarChar(10)
-  Tonality             String  @db.NVarChar(10)
-  Pattern              String  @db.NVarChar(50)
+  KeyName              String  @db.VarChar(5)
+  Accidental           String  @db.VarChar(10)
+  Tonality             String  @db.VarChar(10)
+  Pattern              String  @db.VarChar(50)
   FretAmount           Int
   ChordPosition        Int
-  ChordView            String? @db.NVarChar(10)
+  ChordView            String? @db.VarChar(10)
   ShapeC               Boolean
   ShapeA               Boolean
   ShapeG               Boolean
@@ -113,24 +113,24 @@ model WorkspaceFretboard {
   StringG              Boolean
   StringB              Boolean
   StringHighE          Boolean
-  HighlightNotes       String  @db.NVarChar(500)
+  HighlightNotes       String  @db.VarChar(500)
   User                 User    @relation(fields: [UserId], references: [UserId], onDelete: Cascade, map: "FK_WorkspaceFretboard_User")
 
   @@unique([UserId, Setup, Position], map: "UQ_WorkspaceFretboard_UserId_Setup_Position")
 }
 
 model ChordProgression {
-  UserId       String             @id(map: "PK_ChordProgression") @db.UniqueIdentifier
-  KeyName      String             @db.NVarChar(5)
-  Tonality     String             @db.NVarChar(10)
+  UserId       String             @id(map: "PK_ChordProgression") @db.Uuid
+  KeyName      String             @db.VarChar(5)
+  Tonality     String             @db.VarChar(10)
   ModifiedDate DateTime           @updatedAt
   User         User               @relation(fields: [UserId], references: [UserId], onDelete: Cascade, map: "FK_ChordProgression_User")
   Chords       ProgressionChord[]
 }
 
 model ProgressionChord {
-  ProgressionChordId String           @id(map: "PK_ProgressionChord") @default(uuid()) @db.UniqueIdentifier
-  UserId             String           @db.UniqueIdentifier
+  ProgressionChordId String           @id(map: "PK_ProgressionChord") @default(uuid()) @db.Uuid
+  UserId             String           @db.Uuid
   Position           Int
   Degree             Int
   Progression        ChordProgression @relation(fields: [UserId], references: [UserId], onDelete: Cascade, map: "FK_ProgressionChord_ChordProgression")

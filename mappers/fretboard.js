@@ -1,7 +1,7 @@
 // The only place that converts between the frontend's FretboardData and a
 // CardFretboard / WorkspaceFretboard row (both tables share these columns).
-// SQL Server column names are case-insensitive, so the low and high E strings
-// are StringLowE / StringHighE rather than StringE / Stringe.
+// The low and high E strings are StringLowE / StringHighE rather than
+// StringE / Stringe: names that differ only by case are easy to mix up.
 
 function toFretboardColumns(fretboard, position) {
   return {

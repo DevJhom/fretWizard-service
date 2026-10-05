@@ -1,174 +1,177 @@
-BEGIN TRY
-
-BEGIN TRAN;
-
 -- CreateTable
-CREATE TABLE [dbo].[User] (
-    [UserId] UNIQUEIDENTIFIER NOT NULL,
-    [Email] NVARCHAR(255) NOT NULL,
-    [Username] NVARCHAR(100) NOT NULL,
-    [PasswordHash] NVARCHAR(100),
-    [IsActive] BIT NOT NULL CONSTRAINT [User_IsActive_df] DEFAULT 1,
-    [CreatedDate] DATETIME2 NOT NULL CONSTRAINT [User_CreatedDate_df] DEFAULT CURRENT_TIMESTAMP,
-    [ModifiedDate] DATETIME2 NOT NULL,
-    CONSTRAINT [PK_User] PRIMARY KEY CLUSTERED ([UserId]),
-    CONSTRAINT [UQ_User_Email] UNIQUE NONCLUSTERED ([Email])
+CREATE TABLE "User" (
+    "UserId" UUID NOT NULL,
+    "Email" VARCHAR(255) NOT NULL,
+    "Username" VARCHAR(100) NOT NULL,
+    "PasswordHash" VARCHAR(100),
+    "IsActive" BOOLEAN NOT NULL DEFAULT true,
+    "CreatedDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "ModifiedDate" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PK_User" PRIMARY KEY ("UserId")
 );
 
 -- CreateTable
-CREATE TABLE [dbo].[UserLogin] (
-    [UserLoginId] UNIQUEIDENTIFIER NOT NULL,
-    [UserId] UNIQUEIDENTIFIER NOT NULL,
-    [Provider] NVARCHAR(20) NOT NULL,
-    [ProviderUserId] NVARCHAR(255) NOT NULL,
-    [CreatedDate] DATETIME2 NOT NULL CONSTRAINT [UserLogin_CreatedDate_df] DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT [PK_UserLogin] PRIMARY KEY CLUSTERED ([UserLoginId]),
-    CONSTRAINT [UQ_UserLogin_Provider_ProviderUserId] UNIQUE NONCLUSTERED ([Provider],[ProviderUserId])
+CREATE TABLE "UserLogin" (
+    "UserLoginId" UUID NOT NULL,
+    "UserId" UUID NOT NULL,
+    "Provider" VARCHAR(20) NOT NULL,
+    "ProviderUserId" VARCHAR(255) NOT NULL,
+    "CreatedDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PK_UserLogin" PRIMARY KEY ("UserLoginId")
 );
 
 -- CreateTable
-CREATE TABLE [dbo].[RefreshToken] (
-    [TokenId] UNIQUEIDENTIFIER NOT NULL,
-    [UserId] UNIQUEIDENTIFIER NOT NULL,
-    [TokenHash] CHAR(64) NOT NULL,
-    [FamilyId] UNIQUEIDENTIFIER NOT NULL,
-    [ExpiresAt] DATETIME2 NOT NULL,
-    [RevokedAt] DATETIME2,
-    [CreatedDate] DATETIME2 NOT NULL CONSTRAINT [RefreshToken_CreatedDate_df] DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT [PK_RefreshToken] PRIMARY KEY CLUSTERED ([TokenId]),
-    CONSTRAINT [UQ_RefreshToken_TokenHash] UNIQUE NONCLUSTERED ([TokenHash])
+CREATE TABLE "RefreshToken" (
+    "TokenId" UUID NOT NULL,
+    "UserId" UUID NOT NULL,
+    "TokenHash" CHAR(64) NOT NULL,
+    "FamilyId" UUID NOT NULL,
+    "ExpiresAt" TIMESTAMP(3) NOT NULL,
+    "RevokedAt" TIMESTAMP(3),
+    "CreatedDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PK_RefreshToken" PRIMARY KEY ("TokenId")
 );
 
 -- CreateTable
-CREATE TABLE [dbo].[LibraryCard] (
-    [CardId] UNIQUEIDENTIFIER NOT NULL,
-    [UserId] UNIQUEIDENTIFIER NOT NULL,
-    [Name] NVARCHAR(100) NOT NULL,
-    [Setup] NVARCHAR(10) NOT NULL,
-    [CreatedDate] DATETIME2 NOT NULL CONSTRAINT [LibraryCard_CreatedDate_df] DEFAULT CURRENT_TIMESTAMP,
-    [ModifiedDate] DATETIME2 NOT NULL,
-    CONSTRAINT [PK_LibraryCard] PRIMARY KEY CLUSTERED ([CardId])
+CREATE TABLE "LibraryCard" (
+    "CardId" UUID NOT NULL,
+    "UserId" UUID NOT NULL,
+    "Name" VARCHAR(100) NOT NULL,
+    "Setup" VARCHAR(10) NOT NULL,
+    "CreatedDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "ModifiedDate" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PK_LibraryCard" PRIMARY KEY ("CardId")
 );
 
 -- CreateTable
-CREATE TABLE [dbo].[CardFretboard] (
-    [CardFretboardId] UNIQUEIDENTIFIER NOT NULL,
-    [CardId] UNIQUEIDENTIFIER NOT NULL,
-    [Position] INT NOT NULL,
-    [KeyName] NVARCHAR(5) NOT NULL,
-    [Accidental] NVARCHAR(10) NOT NULL,
-    [Tonality] NVARCHAR(10) NOT NULL,
-    [Pattern] NVARCHAR(50) NOT NULL,
-    [FretAmount] INT NOT NULL,
-    [ChordPosition] INT NOT NULL,
-    [ChordView] NVARCHAR(10),
-    [ShapeC] BIT NOT NULL,
-    [ShapeA] BIT NOT NULL,
-    [ShapeG] BIT NOT NULL,
-    [ShapeE] BIT NOT NULL,
-    [ShapeD] BIT NOT NULL,
-    [StringLowE] BIT NOT NULL,
-    [StringA] BIT NOT NULL,
-    [StringD] BIT NOT NULL,
-    [StringG] BIT NOT NULL,
-    [StringB] BIT NOT NULL,
-    [StringHighE] BIT NOT NULL,
-    [HighlightNotes] NVARCHAR(500) NOT NULL,
-    CONSTRAINT [PK_CardFretboard] PRIMARY KEY CLUSTERED ([CardFretboardId]),
-    CONSTRAINT [UQ_CardFretboard_CardId_Position] UNIQUE NONCLUSTERED ([CardId],[Position])
+CREATE TABLE "CardFretboard" (
+    "CardFretboardId" UUID NOT NULL,
+    "CardId" UUID NOT NULL,
+    "Position" INTEGER NOT NULL,
+    "KeyName" VARCHAR(5) NOT NULL,
+    "Accidental" VARCHAR(10) NOT NULL,
+    "Tonality" VARCHAR(10) NOT NULL,
+    "Pattern" VARCHAR(50) NOT NULL,
+    "FretAmount" INTEGER NOT NULL,
+    "ChordPosition" INTEGER NOT NULL,
+    "ChordView" VARCHAR(10),
+    "ShapeC" BOOLEAN NOT NULL,
+    "ShapeA" BOOLEAN NOT NULL,
+    "ShapeG" BOOLEAN NOT NULL,
+    "ShapeE" BOOLEAN NOT NULL,
+    "ShapeD" BOOLEAN NOT NULL,
+    "StringLowE" BOOLEAN NOT NULL,
+    "StringA" BOOLEAN NOT NULL,
+    "StringD" BOOLEAN NOT NULL,
+    "StringG" BOOLEAN NOT NULL,
+    "StringB" BOOLEAN NOT NULL,
+    "StringHighE" BOOLEAN NOT NULL,
+    "HighlightNotes" VARCHAR(500) NOT NULL,
+
+    CONSTRAINT "PK_CardFretboard" PRIMARY KEY ("CardFretboardId")
 );
 
 -- CreateTable
-CREATE TABLE [dbo].[WorkspaceFretboard] (
-    [WorkspaceFretboardId] UNIQUEIDENTIFIER NOT NULL,
-    [UserId] UNIQUEIDENTIFIER NOT NULL,
-    [Setup] NVARCHAR(10) NOT NULL,
-    [Position] INT NOT NULL,
-    [KeyName] NVARCHAR(5) NOT NULL,
-    [Accidental] NVARCHAR(10) NOT NULL,
-    [Tonality] NVARCHAR(10) NOT NULL,
-    [Pattern] NVARCHAR(50) NOT NULL,
-    [FretAmount] INT NOT NULL,
-    [ChordPosition] INT NOT NULL,
-    [ChordView] NVARCHAR(10),
-    [ShapeC] BIT NOT NULL,
-    [ShapeA] BIT NOT NULL,
-    [ShapeG] BIT NOT NULL,
-    [ShapeE] BIT NOT NULL,
-    [ShapeD] BIT NOT NULL,
-    [StringLowE] BIT NOT NULL,
-    [StringA] BIT NOT NULL,
-    [StringD] BIT NOT NULL,
-    [StringG] BIT NOT NULL,
-    [StringB] BIT NOT NULL,
-    [StringHighE] BIT NOT NULL,
-    [HighlightNotes] NVARCHAR(500) NOT NULL,
-    CONSTRAINT [PK_WorkspaceFretboard] PRIMARY KEY CLUSTERED ([WorkspaceFretboardId]),
-    CONSTRAINT [UQ_WorkspaceFretboard_UserId_Setup_Position] UNIQUE NONCLUSTERED ([UserId],[Setup],[Position])
+CREATE TABLE "WorkspaceFretboard" (
+    "WorkspaceFretboardId" UUID NOT NULL,
+    "UserId" UUID NOT NULL,
+    "Setup" VARCHAR(10) NOT NULL,
+    "Position" INTEGER NOT NULL,
+    "KeyName" VARCHAR(5) NOT NULL,
+    "Accidental" VARCHAR(10) NOT NULL,
+    "Tonality" VARCHAR(10) NOT NULL,
+    "Pattern" VARCHAR(50) NOT NULL,
+    "FretAmount" INTEGER NOT NULL,
+    "ChordPosition" INTEGER NOT NULL,
+    "ChordView" VARCHAR(10),
+    "ShapeC" BOOLEAN NOT NULL,
+    "ShapeA" BOOLEAN NOT NULL,
+    "ShapeG" BOOLEAN NOT NULL,
+    "ShapeE" BOOLEAN NOT NULL,
+    "ShapeD" BOOLEAN NOT NULL,
+    "StringLowE" BOOLEAN NOT NULL,
+    "StringA" BOOLEAN NOT NULL,
+    "StringD" BOOLEAN NOT NULL,
+    "StringG" BOOLEAN NOT NULL,
+    "StringB" BOOLEAN NOT NULL,
+    "StringHighE" BOOLEAN NOT NULL,
+    "HighlightNotes" VARCHAR(500) NOT NULL,
+
+    CONSTRAINT "PK_WorkspaceFretboard" PRIMARY KEY ("WorkspaceFretboardId")
 );
 
 -- CreateTable
-CREATE TABLE [dbo].[ChordProgression] (
-    [UserId] UNIQUEIDENTIFIER NOT NULL,
-    [KeyName] NVARCHAR(5) NOT NULL,
-    [Tonality] NVARCHAR(10) NOT NULL,
-    [ModifiedDate] DATETIME2 NOT NULL,
-    CONSTRAINT [PK_ChordProgression] PRIMARY KEY CLUSTERED ([UserId])
+CREATE TABLE "ChordProgression" (
+    "UserId" UUID NOT NULL,
+    "KeyName" VARCHAR(5) NOT NULL,
+    "Tonality" VARCHAR(10) NOT NULL,
+    "ModifiedDate" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PK_ChordProgression" PRIMARY KEY ("UserId")
 );
 
 -- CreateTable
-CREATE TABLE [dbo].[ProgressionChord] (
-    [ProgressionChordId] UNIQUEIDENTIFIER NOT NULL,
-    [UserId] UNIQUEIDENTIFIER NOT NULL,
-    [Position] INT NOT NULL,
-    [Degree] INT NOT NULL,
-    CONSTRAINT [PK_ProgressionChord] PRIMARY KEY CLUSTERED ([ProgressionChordId]),
-    CONSTRAINT [UQ_ProgressionChord_UserId_Position] UNIQUE NONCLUSTERED ([UserId],[Position])
+CREATE TABLE "ProgressionChord" (
+    "ProgressionChordId" UUID NOT NULL,
+    "UserId" UUID NOT NULL,
+    "Position" INTEGER NOT NULL,
+    "Degree" INTEGER NOT NULL,
+
+    CONSTRAINT "PK_ProgressionChord" PRIMARY KEY ("ProgressionChordId")
 );
 
 -- CreateIndex
-CREATE NONCLUSTERED INDEX [IX_UserLogin_UserId] ON [dbo].[UserLogin]([UserId]);
+CREATE UNIQUE INDEX "UQ_User_Email" ON "User"("Email");
 
 -- CreateIndex
-CREATE NONCLUSTERED INDEX [IX_RefreshToken_UserId] ON [dbo].[RefreshToken]([UserId]);
+CREATE INDEX "IX_UserLogin_UserId" ON "UserLogin"("UserId");
 
 -- CreateIndex
-CREATE NONCLUSTERED INDEX [IX_RefreshToken_FamilyId] ON [dbo].[RefreshToken]([FamilyId]);
+CREATE UNIQUE INDEX "UQ_UserLogin_Provider_ProviderUserId" ON "UserLogin"("Provider", "ProviderUserId");
 
 -- CreateIndex
-CREATE NONCLUSTERED INDEX [IX_LibraryCard_UserId_CreatedDate] ON [dbo].[LibraryCard]([UserId], [CreatedDate]);
+CREATE UNIQUE INDEX "UQ_RefreshToken_TokenHash" ON "RefreshToken"("TokenHash");
+
+-- CreateIndex
+CREATE INDEX "IX_RefreshToken_UserId" ON "RefreshToken"("UserId");
+
+-- CreateIndex
+CREATE INDEX "IX_RefreshToken_FamilyId" ON "RefreshToken"("FamilyId");
+
+-- CreateIndex
+CREATE INDEX "IX_LibraryCard_UserId_CreatedDate" ON "LibraryCard"("UserId", "CreatedDate");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_CardFretboard_CardId_Position" ON "CardFretboard"("CardId", "Position");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_WorkspaceFretboard_UserId_Setup_Position" ON "WorkspaceFretboard"("UserId", "Setup", "Position");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UQ_ProgressionChord_UserId_Position" ON "ProgressionChord"("UserId", "Position");
 
 -- AddForeignKey
-ALTER TABLE [dbo].[UserLogin] ADD CONSTRAINT [FK_UserLogin_User] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User]([UserId]) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "UserLogin" ADD CONSTRAINT "FK_UserLogin_User" FOREIGN KEY ("UserId") REFERENCES "User"("UserId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[RefreshToken] ADD CONSTRAINT [FK_RefreshToken_User] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User]([UserId]) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "RefreshToken" ADD CONSTRAINT "FK_RefreshToken_User" FOREIGN KEY ("UserId") REFERENCES "User"("UserId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[LibraryCard] ADD CONSTRAINT [FK_LibraryCard_User] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User]([UserId]) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "LibraryCard" ADD CONSTRAINT "FK_LibraryCard_User" FOREIGN KEY ("UserId") REFERENCES "User"("UserId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[CardFretboard] ADD CONSTRAINT [FK_CardFretboard_LibraryCard] FOREIGN KEY ([CardId]) REFERENCES [dbo].[LibraryCard]([CardId]) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CardFretboard" ADD CONSTRAINT "FK_CardFretboard_LibraryCard" FOREIGN KEY ("CardId") REFERENCES "LibraryCard"("CardId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[WorkspaceFretboard] ADD CONSTRAINT [FK_WorkspaceFretboard_User] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User]([UserId]) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "WorkspaceFretboard" ADD CONSTRAINT "FK_WorkspaceFretboard_User" FOREIGN KEY ("UserId") REFERENCES "User"("UserId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[ChordProgression] ADD CONSTRAINT [FK_ChordProgression_User] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User]([UserId]) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ChordProgression" ADD CONSTRAINT "FK_ChordProgression_User" FOREIGN KEY ("UserId") REFERENCES "User"("UserId") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE [dbo].[ProgressionChord] ADD CONSTRAINT [FK_ProgressionChord_ChordProgression] FOREIGN KEY ([UserId]) REFERENCES [dbo].[ChordProgression]([UserId]) ON DELETE CASCADE ON UPDATE CASCADE;
-
-COMMIT TRAN;
-
-END TRY
-BEGIN CATCH
-
-IF @@TRANCOUNT > 0
-BEGIN
-    ROLLBACK TRAN;
-END;
-THROW
-
-END CATCH
+ALTER TABLE "ProgressionChord" ADD CONSTRAINT "FK_ProgressionChord_ChordProgression" FOREIGN KEY ("UserId") REFERENCES "ChordProgression"("UserId") ON DELETE CASCADE ON UPDATE CASCADE;
 
