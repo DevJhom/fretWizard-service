@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 - **Install:** `npm install` (also generates the Prisma client)
+- **Database:** `docker compose up -d` starts SQL Server on `localhost:1433` (`docker-compose.yml`, sa password from `MSSQL_SA_PASSWORD` in `.env`; data in the `fretwizard-sql-data` volume). LocalDB doesn't work: Prisma connects over TCP only
 - **Start:** `npm start` (port from `PORT`, default 3000) · **Dev:** `npm run dev`
 - **Unit tests:** `npm run test:unit` (no database needed)
 - **All tests:** `npm test` (needs `.env.test` pointing at a database whose name contains "test"; it is reset first)
