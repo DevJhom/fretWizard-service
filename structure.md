@@ -53,7 +53,7 @@ Client
   -> app.js middleware: logger -> CORS -> JSON body parser
   -> requireAuth (protected routes only)
   -> validate (zod)
-  -> route handler -> service -> Prisma -> SQL Server
+  -> route handler -> service -> Prisma -> PostgreSQL
   -> JSON response
      (any error -> errorHandler -> { "error": { "code", "message" } })
 ```

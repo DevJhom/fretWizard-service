@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 - **Install:** `npm install` (also generates the Prisma client)
-- **Database:** `docker compose up -d` starts SQL Server on `localhost:1433` (`docker-compose.yml`, sa password from `MSSQL_SA_PASSWORD` in `.env`; data in the `fretwizard-sql-data` volume). LocalDB doesn't work: Prisma connects over TCP only
+- **Database:** `docker compose up -d` starts PostgreSQL 16 on `localhost:5432` (`docker-compose.yml`; role `fretwizard`, password from `POSTGRES_PASSWORD` in `.env`; databases `fretwizard` and `fretwizard_test`; data in the `fretwizard-pg-data` volume)
 - **Start:** `npm start` (port from `PORT`, default 3000) · **Dev:** `npm run dev`
 - **Unit tests:** `npm run test:unit` (no database needed)
 - **All tests:** `npm test` (needs `.env.test` pointing at a database whose name contains "test"; it is reset first)
@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-JSON API for the FretWizard frontend: accounts (email + password, Google), Library cards, Scale/Chord workspaces, Chord Progression, and a one-time import of a guest's browser data. Express 4 + Prisma 5 + SQL Server, CommonJS.
+JSON API for the FretWizard frontend: accounts (email + password, Google), Library cards, Scale/Chord workspaces, Chord Progression, and a one-time import of a guest's browser data. Express 4 + Prisma 5 + PostgreSQL, CommonJS.
 
 - `app.js` — `createApp({ prisma, config, googleVerifier })`; `bin/www` loads `.env`, builds the real dependencies and listens. Tests build the app with a test config and a fake Google verifier.
 - `routes/` — thin router factories taking the deps object: validate → call a service → respond.
@@ -28,7 +28,7 @@ Design spec: `docs/superpowers/specs/2026-10-01-accounts-and-sync-design.md`.
 
 ## Conventions
 
-- Database names are PascalCase; JSON is camelCase.
+- Database names are PascalCase; JSON is camelCase. In raw SQL (psql, pgAdmin) quote them: `SELECT * FROM "User";`
 - Every query for a user's data filters by `UserId`. Another user's resource, or a non-UUID id, is a 404.
 - Throw the helpers from `lib/errors.js`; `errorHandler` renders `{ error: { code, message, details? } }`.
 - Access tokens: JWT HS256, 15 min. Refresh tokens: random, stored as SHA-256 hashes, 7 days, rotated on every refresh; a reused token revokes its whole family.
