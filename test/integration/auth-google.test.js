@@ -71,7 +71,7 @@ test('unverified emails and invalid ID tokens are rejected', async function () {
   for (var idToken of ['token-unverified', 'forged-token']) {
     var res = await google(idToken);
     assert.equal(res.status, 401, idToken);
-    assert.deepEqual(res.body, { error: { code: 'UNAUTHORIZED', message: 'Google sign-in failed' } });
+    assert.deepEqual(res.body, { error: { code: 'UNAUTHORIZED', message: 'Google login failed' } });
   }
   assert.equal(await prisma.user.count(), 0);
 });

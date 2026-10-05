@@ -38,7 +38,7 @@ function googleUsername(name, email) {
 }
 
 async function signInWithGoogle(prisma, identity) {
-  if (!identity.emailVerified || !identity.email) throw unauthorized('Google sign-in failed');
+  if (!identity.emailVerified || !identity.email) throw unauthorized('Google login failed');
   var email = identity.email.trim().toLowerCase();
 
   var login = await prisma.userLogin.findUnique({
@@ -46,13 +46,13 @@ async function signInWithGoogle(prisma, identity) {
     include: { User: true },
   });
   if (login) {
-    if (!login.User.IsActive) throw unauthorized('Google sign-in failed');
+    if (!login.User.IsActive) throw unauthorized('Google login failed');
     return { user: login.User, isNewUser: false };
   }
 
   var existing = await prisma.user.findUnique({ where: { Email: email } });
   if (existing) {
-    if (!existing.IsActive) throw unauthorized('Google sign-in failed');
+    if (!existing.IsActive) throw unauthorized('Google login failed');
     // Google proved who owns this email; the password never was, so it goes,
     // along with every session that password may have started.
     var linked = await prisma.$transaction(async function (tx) {

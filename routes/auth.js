@@ -117,7 +117,7 @@ function createAuthRouter(deps) {
    *               idToken: { type: string, description: Credential from Google Identity Services }
    *     responses:
    *       200: { description: Signed in; isNewUser tells whether the account was just created, content: { application/json: { schema: { $ref: '#/components/schemas/AuthResponse' } } } }
-   *       401: { description: Google sign-in failed }
+   *       401: { description: Google login failed }
    *       429: { description: Rate limited }
    */
   router.post('/google', createRateLimit(config.rateLimits.auth), validate({ body: googleSchema }), asyncHandler(async function (req, res) {
@@ -125,7 +125,7 @@ function createAuthRouter(deps) {
     try {
       identity = await deps.googleVerifier.verify(req.body.idToken);
     } catch (_err) {
-      throw unauthorized('Google sign-in failed');
+      throw unauthorized('Google login failed');
     }
     var result = await users.signInWithGoogle(prisma, identity);
     var issued = await tokens.issueTokens(prisma, config, result.user.UserId);
