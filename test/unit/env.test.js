@@ -4,14 +4,19 @@ var { assertTestDatabaseUrl } = require('../support/env');
 
 test('accepts a URL whose database name contains "test"', function () {
   assert.doesNotThrow(function () {
-    assertTestDatabaseUrl('sqlserver://localhost;database=Fretwizard_Test;integratedSecurity=true');
+    assertTestDatabaseUrl('postgresql://fretwizard:secret@localhost:5432/fretwizard_test?schema=public');
   });
 });
 
-test('refuses every other database, even on a server called "test"', function () {
+test('refuses every other database, even when the server or user is called "test"', function () {
   [
-    'sqlserver://localhost;database=Fretwizard;integratedSecurity=true',
-    'sqlserver://testserver;database=Fretwizard;integratedSecurity=true',
+    'postgresql://fretwizard:secret@localhost:5432/fretwizard?schema=public',
+    'postgresql://fretwizard:secret@testserver:5432/fretwizard',
+    'postgresql://test:secret@localhost:5432/fretwizard',
+    'postgresql://fretwizard:test@localhost:5432/fretwizard?schema=test',
+    // A stale SQL Server .env.test must not pass
+    'sqlserver://localhost;database=Fretwizard_Test;integratedSecurity=true',
+    'not a url',
     undefined,
   ].forEach(function (url) {
     assert.throws(function () {

@@ -3,7 +3,7 @@ var assert = require('node:assert/strict');
 var { loadConfig } = require('../../lib/config');
 
 var validEnv = {
-  DATABASE_URL: 'sqlserver://localhost;database=Fretwizard',
+  DATABASE_URL: 'postgresql://fretwizard:secret@localhost:5432/fretwizard',
   JWT_SECRET: 'a'.repeat(32),
   GOOGLE_CLIENT_ID: 'client-id.apps.googleusercontent.com',
   CORS_ORIGINS: 'http://localhost:5173, https://devjhom.github.io',
