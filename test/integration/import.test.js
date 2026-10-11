@@ -56,6 +56,21 @@ test('import fills an empty account and keeps the browser\'s card order', async 
   assert.equal((await get(session, '/chord-progression')).body.key, 'F♯');
 });
 
+test('imported cards keep their favorite state', async function () {
+  var session = await signUp(app);
+  var body = importBody();
+  body.libraryCards[1].isFavorite = true;
+  body.libraryCards[2].isFavorite = false;
+
+  var res = await postImport(session, body);
+  assert.equal(res.status, 200);
+
+  var cards = (await get(session, '/library-cards')).body;
+  assert.deepEqual(cards.map(function (card) {
+    return card.isFavorite;
+  }), [false, true, false]);
+});
+
 test('the account wins for workspaces and the progression; cards are appended', async function () {
   var session = await signUp(app);
   await put(session, '/workspaces/scale', { fretboards: [sampleFretboard({ currentKey: 'F' })] });

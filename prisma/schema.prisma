@@ -54,6 +54,7 @@ model LibraryCard {
   UserId       String   @db.Uuid
   Name         String   @db.VarChar(100)
   Setup        String   @db.VarChar(10)
+  IsFavorite   Boolean  @default(false)
   CreatedDate  DateTime @default(now())
   ModifiedDate DateTime @updatedAt
   User         User     @relation(fields: [UserId], references: [UserId], onDelete: Cascade, map: "FK_LibraryCard_User")

@@ -12,6 +12,7 @@ function toCardResponse(card) {
     fretboards: card.Fretboards.map(function (row) {
       return toFretboardData(row, card.Setup);
     }),
+    isFavorite: card.IsFavorite,
     createdAt: card.CreatedDate.getTime(),
   };
 }
@@ -39,6 +40,7 @@ async function createCard(db, userId, input, createdDate) {
       UserId: userId,
       Name: input.name,
       Setup: input.setup,
+      IsFavorite: input.isFavorite === true,
       CreatedDate: createdDate || new Date(),
       Fretboards: { create: toStackRows(input.fretboards) },
     },
@@ -54,6 +56,7 @@ async function updateCard(prisma, userId, cardId, patch) {
 
     var data = {};
     if (patch.name !== undefined) data.Name = patch.name;
+    if (patch.isFavorite !== undefined) data.IsFavorite = patch.isFavorite;
     if (patch.fretboards !== undefined) {
       await tx.cardFretboard.deleteMany({ where: { CardId: cardId } });
       data.Fretboards = { create: toStackRows(patch.fretboards) };

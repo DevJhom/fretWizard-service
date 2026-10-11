@@ -38,6 +38,7 @@ function cardIdFrom(req) {
  *         name: { type: string }
  *         setup: { type: string, enum: [Scale, Chord] }
  *         fretboards: { type: array, items: { $ref: '#/components/schemas/FretboardData' } }
+ *         isFavorite: { type: boolean }
  *         createdAt: { type: integer, description: Epoch milliseconds }
  */
 
@@ -69,6 +70,7 @@ function createLibraryCardsRouter(deps) {
    *               name: { type: string, maxLength: 100 }
    *               setup: { type: string, enum: [Scale, Chord] }
    *               fretboards: { type: array, minItems: 1, maxItems: 50, items: { $ref: '#/components/schemas/FretboardData' } }
+   *               isFavorite: { type: boolean, default: false }
    *     responses:
    *       201: { description: Created card, content: { application/json: { schema: { $ref: '#/components/schemas/LibraryCard' } } } }
    *       400: { description: Validation error }
@@ -87,7 +89,7 @@ function createLibraryCardsRouter(deps) {
    * @swagger
    * /library-cards/{id}:
    *   patch:
-   *     summary: Rename a card and/or replace its stack
+   *     summary: Rename a card, replace its stack and/or favorite it
    *     tags: [Library]
    *     security: [{ bearerAuth: [] }]
    *     parameters:
@@ -101,6 +103,7 @@ function createLibraryCardsRouter(deps) {
    *             properties:
    *               name: { type: string, maxLength: 100 }
    *               fretboards: { type: array, minItems: 1, maxItems: 50, items: { $ref: '#/components/schemas/FretboardData' } }
+   *               isFavorite: { type: boolean }
    *     responses:
    *       200: { description: Updated card, content: { application/json: { schema: { $ref: '#/components/schemas/LibraryCard' } } } }
    *       404: { description: Not found or not yours }

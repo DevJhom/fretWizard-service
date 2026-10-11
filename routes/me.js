@@ -64,7 +64,7 @@ function createMeRouter(deps) {
    *           schema:
    *             type: object
    *             properties:
-   *               libraryCards: { type: array, maxItems: 200, items: { type: object, properties: { name: { type: string }, setup: { type: string, enum: [Scale, Chord] }, fretboards: { type: array, items: { $ref: '#/components/schemas/FretboardData' } } } } }
+   *               libraryCards: { type: array, maxItems: 200, items: { type: object, properties: { name: { type: string }, setup: { type: string, enum: [Scale, Chord] }, fretboards: { type: array, items: { $ref: '#/components/schemas/FretboardData' } }, isFavorite: { type: boolean } } } }
    *               workspaces: { type: object, properties: { scale: { type: object, properties: { fretboards: { type: array, items: { $ref: '#/components/schemas/FretboardData' } } } }, chord: { type: object, properties: { fretboards: { type: array, items: { $ref: '#/components/schemas/FretboardData' } } } } } }
    *               chordProgression: { $ref: '#/components/schemas/ChordProgression' }
    *     responses:

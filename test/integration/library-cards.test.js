@@ -44,6 +44,7 @@ test('creating a card returns it in the frontend shape', async function () {
   assert.equal(res.body.name, 'Minor shapes');
   assert.equal(res.body.setup, 'Scale');
   assert.deepEqual(res.body.fretboards, [sampleFretboard({ currentSetup: 'Scale' })]);
+  assert.equal(res.body.isFavorite, false);
   assert.equal(typeof res.body.createdAt, 'number');
   assert.ok(res.body.createdAt >= before - 1000 && res.body.createdAt <= Date.now() + 1000);
 });
@@ -92,7 +93,44 @@ test('PATCH replaces the whole stack', async function () {
   assert.equal(await prisma.cardFretboard.count({ where: { CardId: card.id } }), 1);
 });
 
-test('PATCH needs a name or fretboards', async function () {
+test('PATCH favorites a card and leaves the rest alone', async function () {
+  var session = await signUp(app);
+  var card = (await createCard(session, cardBody())).body;
+  var res = await patchCard(session, card.id, { isFavorite: true });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.isFavorite, true);
+  assert.equal(res.body.name, 'Minor shapes');
+  assert.deepEqual(res.body.fretboards, card.fretboards);
+  assert.equal((await listCards(session)).body[0].isFavorite, true);
+});
+
+test('PATCH unfavorites a card', async function () {
+  var session = await signUp(app);
+  var card = (await createCard(session, cardBody())).body;
+  await patchCard(session, card.id, { isFavorite: true });
+  var res = await patchCard(session, card.id, { isFavorite: false });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.isFavorite, false);
+});
+
+test('renaming a favorite keeps it a favorite', async function () {
+  var session = await signUp(app);
+  var card = (await createCard(session, cardBody())).body;
+  await patchCard(session, card.id, { isFavorite: true });
+  var res = await patchCard(session, card.id, { name: 'Renamed' });
+  assert.equal(res.body.isFavorite, true);
+});
+
+test('isFavorite must be true or false', async function () {
+  var session = await signUp(app);
+  var card = (await createCard(session, cardBody())).body;
+  var res = await patchCard(session, card.id, { isFavorite: 'yes' });
+  assert.equal(res.status, 400);
+  assert.equal(res.body.error.code, 'VALIDATION_ERROR');
+  assert.equal((await listCards(session)).body[0].isFavorite, false);
+});
+
+test('PATCH needs a name, fretboards or isFavorite', async function () {
   var session = await signUp(app);
   var card = (await createCard(session, cardBody())).body;
   var res = await patchCard(session, card.id, {});
